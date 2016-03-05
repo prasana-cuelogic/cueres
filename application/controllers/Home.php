@@ -38,6 +38,7 @@
                 $this->arrReturn['success'] = 0;
                 $this->arrReturn['text'] =  "Invalid login details.";
             }
+            return json_encode($this->arrReturn);
         }
 
         public function mobileAPI(){

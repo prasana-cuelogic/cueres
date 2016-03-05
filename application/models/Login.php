@@ -11,7 +11,7 @@ class Login extends CI_Model {
 
 
     public function userLogin($cuid, $password){
-        $objResult = $this->db->query('SELECT uid FROM bookedslots WHERE cuid="'.$cuid.' AND password = '.$password )->result();
+        $objResult = $this->db->query("SELECT uid FROM user WHERE cuid='$cuid' AND password = '$password'")->result();
         if($objResult) {
             foreach ($objResult as $row) {
                 return $row->uid;
