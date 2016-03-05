@@ -15,8 +15,6 @@ class Booking_slots extends CI_Model {
         //$this->load->database();
     }
 
-
-
     public function getBookedSlotsByUid($uid){
         return $query = $this->db->query('SELECT * FROM bookedslots WHERE uid='.$uid)->result();
     }

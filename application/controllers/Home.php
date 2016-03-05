@@ -6,6 +6,7 @@
         private $arrReturn;
 
         public function __construct(){
+            parent::__construct();
             $this->arrReturn = array("success"=>0, "text"=>"", "data"=>"");
         }
         public function index(){
