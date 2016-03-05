@@ -7,7 +7,6 @@
         public function __construct(){
             $this->startTime = "10:00";
             $this->endTime = "21:00";
-
         }
         /**
          * Function will calculate available slots for the requested date.
@@ -48,7 +47,7 @@
                 do {
                     $nextTime = $strStartTime + ($intDuration*60);
                     if($nextTime <= $strEndTime){
-                        $arrTimeSlots[] = array("time"=>date("h:i a", strtotime($strStartTime)), "status"=>1);
+                        $arrTimeSlots[] = array("time"=>date("h:i a", $strStartTime), "status"=>1);
                         $strStartTime = $nextTime;
                         $boolFlag = true;
                     } else {

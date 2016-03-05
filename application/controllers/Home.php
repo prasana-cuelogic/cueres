@@ -21,7 +21,7 @@
         private function availableSlots($date, $duration, $category, $chkSlot = ""){
             $this->load->model('booking_slots');
             $this->load->library('booking_data');
-            $objResult = $this->booking_slots->getBookedSlotsByDate($date, $category);
+            $objResult = $this->booking_slots->getBookedSlotsByDateCategory($date, $category);
 
             $arrTimeChunk = array();
             $arrBookedSlots = array();
