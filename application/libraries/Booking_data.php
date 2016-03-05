@@ -17,43 +17,18 @@
          *
          * @return string
          */
-        public function getAvailableSlots($date, $slotTime, $type){
-            //return $date.$slotTime.$type;
-            //$arrBookedSlots = $this->getBookedSlots($date);
+        public function getAvailableSlots($duration, $arrBookedTime){
 
-            $arrTimeChunks = array(
-                'from' => array(
-                    "10:00", "14:30", "17:15"
-                ),
-                'end'  => array(
-                    "14:00", "16:45", "21:00"
-                )
-            );
-            $time = strtotime($arrTimeChunks['from'][0]);
-            /*echo date("Y-m-d H:i:s", $time);
-            $time += (30*60);
-            echo "==>";
-            echo date("Y-m-d H:i:s", $time);
-            die;*/
-            $arrTime = $this->createTimeSlotForBooking(30, $arrTimeChunks);
-            echo "<pre>";print_r($arrTime);die;
-        }
-
-        /**
-         * function will create chunks in which user can book new slot.
-         * @param $arrBookedTime
-         *
-         * @return array
-         */
-        private function getAvailableTimeChunks($arrBookedTime){
             $arrTime = array();
             $arrTime["from"][] = $this->startTime;
-            foreach($arrBookedTime as $objTime){
-                $arrTime['end'][] = date("H:i", $objTime->book_from);
-                $arrTime['from'][] = date("H:i", $objTime->book_end);
+            if(count($arrBookedTime) > 0){
+                foreach ($arrBookedTime as $rowTime) {
+                    $arrTime['end'][] = date("H:i", strtotime($rowTime->book_from));
+                    $arrTime['from'][] = date("H:i", strtotime($rowTime->book_to));
+                }
             }
             $arrTime["end"][] = $this->endTime;
-            return $arrTime;
+            return $arrAvailableSlots = $this->createTimeSlotForBooking($duration, $arrTime);
         }
 
         /**
@@ -73,14 +48,13 @@
                 do {
                     $nextTime = $strStartTime + ($intDuration*60);
                     if($nextTime <= $strEndTime){
-                        $arrTimeSlots[] = date("h:i a",$strStartTime);
+                        $arrTimeSlots[] = array("time"=>date("h:i a", strtotime($strStartTime)), "status"=>1);
                         $strStartTime = $nextTime;
                         $boolFlag = true;
                     } else {
                         $boolFlag = false;
                     }
                 } while($boolFlag);
-
             }
             return $arrTimeSlots;
         }
