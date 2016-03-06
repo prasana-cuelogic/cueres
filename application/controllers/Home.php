@@ -4,18 +4,31 @@
     class Home extends CI_Controller {
 
         private $arrReturn;
-
+        private $postData;
         public function __construct(){
             parent::__construct();
             $this->arrReturn = array("success"=>0, "text"=>"", "data"=>"", "token"=>"");
         }
         public function index(){
+            if (isset($_SERVER['HTTP_ORIGIN'])) {
+                header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
+                header('Access-Control-Allow-Credentials: true');
+                header('Access-Control-Max-Age: 86400');    // cache for 1 day
+            }
+
+            // Access-Control headers are received during OPTIONS requests
+            if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+
+                if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD']))
+                    header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+
+                if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']))
+                    header("Access-Control-Allow-Headers:        {$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}");
+
+                exit(0);
+            }
+
             $this->mobileAPI();
-            /*$this->load->model('booking_slots');
-            $this->load->library('booking_data');
-            $result = $this->booking_data->getAvailableSlots('2016-03-04', '30', 'meeting_room');
-            echo $result;*/
-            //$this->booking_slots->getBookedSlotsByUid(82);
         }
 
         private function availableSlots($date, $duration, $category, $chkSlot = ""){
@@ -47,12 +60,12 @@
         }
 
         private function bookAppointment(){
-            $uid = $this->input->post('uid');
-            $date = $this->input->post('bkDate');
-            $category = $this->input->post('type');
-            $bookStart = $this->input->post('startTime');
-            $purpose = $this->input->post('purpose');
-            $duration = $this->input->post('duration');
+            $uid = $this->postData->uid;
+            $date = $this->postData->bkDate;
+            $category = $this->postData->type;
+            $bookStart = $this->postData->startTime;
+            $purpose = $this->postData->purpose;
+            $duration = $this->postData->duration;
             if($date != "" && $category != "" && $bookStart != "" && $duration != "") {
                 $bookStart = date("H:i:s", strtotime($bookStart));
                 $bookEnd = date("H:i:s", strtotime($bookStart) + (60*$duration));
@@ -90,8 +103,8 @@
          */
         private function login() {
             //Set variables
-            $uid = $this->input->post('cueid');
-            $password = $this->input->post('password');
+            $uid = $this->postData->cueid;
+            $password = $this->postData->password;
 
             $this->load->model('login');
             $intUid = $this->login->userLogin($uid, $password);
@@ -106,48 +119,57 @@
         }
 
         public function mobileAPI(){
-            $uid = $this->input->post('uid');
-            $caseAction = $this->input->post('action');
-            switch($caseAction){
-                case "login":
-                    $this->login();
-                break;
-                case "cancelSlot":
-                    if((int)$uid > 0) {
-                        $slotId = $this->input->post("aptId");
-                        $this->cancelMySlot($slotId,$uid);
-                    } else {
-                        $this->invalidParameter();
-                    }
-                break;
-                case "myBookedApt":
-                    if((int)$uid > 0) {
-                        $this->getMyBookedSlots($uid);
-                    } else {
-                        $this->invalidParameter();
-                    }
-                break;
-                case "bookApt":
-                    if((int)$uid > 0) {
-                        $this->bookAppointment();
-                    } else {
-                        $this->invalidParameter();
-                    }
-                break;
-                case "availableSlots":
-                    $date = $this->input->post('date');
-                    $duration = $this->input->post('duration');
-                    $category = $this->input->post('type');
-                    $this->availableSlots($date, $duration, $category);
-                break;
-                case "myBookedSlots":
-                default:
-                    if((int)$uid > 0) {
-                        $this->myBookedSlots($uid);
-                    } else {
-                        $this->invalidParameter();
-                    }
-                break;
+            $jsonData = file_get_contents("php://input");
+            if (isset($jsonData)) {
+                $this->postData = json_decode($jsonData);
+                print_r($this->postData);die;
+                $uid = (isset($this->postData->uid)) ? $this->postData->uid : "";
+                $caseAction = $this->postData->action;
+                switch ($caseAction) {
+                    case "login":
+                        $this->login();
+                        break;
+                    case "cancelSlot":
+                        if ((int) $uid > 0) {
+                            $slotId = $this->input->post("aptId");
+                            $this->cancelMySlot($slotId, $uid);
+                        }
+                        else {
+                            $this->invalidParameter();
+                        }
+                        break;
+                    case "myBookedApt":
+                        if ((int) $uid > 0) {
+                            $this->getMyBookedSlots($uid);
+                        }
+                        else {
+                            $this->invalidParameter();
+                        }
+                        break;
+                    case "bookApt":
+                        if ((int) $uid > 0) {
+                            $this->bookAppointment();
+                        }
+                        else {
+                            $this->invalidParameter();
+                        }
+                        break;
+                    case "availableSlots":
+                        $date = $this->postData->date;
+                        $duration = $this->postData->duration;
+                        $category = $this->postData->type;
+                        $this->availableSlots($date, $duration, $category);
+                        break;
+                    case "myBookedSlots":
+                    default:
+                        if ((int) $uid > 0) {
+                            $this->myBookedSlots($uid);
+                        }
+                        else {
+                            $this->invalidParameter();
+                        }
+                        break;
+                }
             }
             print json_encode($this->arrReturn);die;
         }
