@@ -50,6 +50,7 @@
 
         private function getMyBookedSlots($intUid){
             $this->load->model('booking_slots');
+            $arrBookedSlots = array();
             $objResult = $this->booking_slots->getBookedSlotsByUid($intUid);
             if ($objResult->num_rows() > 0) {
                 foreach ($objResult->result() as $row) {
@@ -111,7 +112,7 @@
             if((int)$intUid > 0){
                 $this->arrReturn['success'] = 1;
                 $this->getMyBookedSlots($intUid);
-                //$this->arrReturn['token'] = $intUid;
+                $this->arrReturn['token'] = $intUid;
             } else {
                 $this->arrReturn['success'] = 0;
                 $this->arrReturn['text'] =  "Invalid login details.";
@@ -122,7 +123,7 @@
             $jsonData = file_get_contents("php://input");
             if (isset($jsonData)) {
                 $this->postData = json_decode($jsonData);
-                print_r($this->postData);die;
+                //print_r($this->postData);die;
                 $uid = (isset($this->postData->uid)) ? $this->postData->uid : "";
                 $caseAction = $this->postData->action;
                 switch ($caseAction) {
